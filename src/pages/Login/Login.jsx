@@ -1,9 +1,23 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import logo from "../../assets/logo.png";
 import { login, signup } from "../../firebase";
 import netflix_spinner from "../../assets/netflix_spinner.gif";
-import { useNavigate } from "react-router-dom";
+
+function fakeLogin(email, password) {
+  if (email === "demo@netflixclone.dev" && password === "demo123") {
+    localStorage.setItem(
+      "demoUser",
+      JSON.stringify({
+        email,
+        name: "Demo User",
+      }),
+    );
+    return true;
+  }
+  return false;
+}
 
 const Login = () => {
   const [signState, setSignState] = useState("Sign In");
@@ -11,15 +25,33 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const user_auth = async (event) => {
     event.preventDefault();
     setLoading(true);
-    if (signState === "Sign In") {
-      await login(email, password);
-    } else {
-      await signup(name, email, password);
+
+    try {
+      // ✅ FIRST — Try demo login
+      if (fakeLogin(email, password)) {
+        setLoading(false);
+        navigate("/", { replace: true });
+        return;
+      }
+
+      // ✅ Otherwise use Firebase
+      if (signState === "Sign In") {
+        await login(email, password);
+        navigate("/");
+      } else {
+        await signup(name, email, password);
+        navigate("/");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Login failed");
     }
+
     setLoading(false);
   };
 
@@ -64,6 +96,16 @@ const Login = () => {
           <button onClick={user_auth} type="submit">
             {signState}
           </button>
+          <button
+            type="button"
+            onClick={() => {
+              fakeLogin("demo@netflixclone.dev", "demo123");
+              navigate("/", { replace: true });
+            }}
+          >
+            Use Demo Account
+          </button>
+
           <div className="form-help">
             <div className="remember">
               <input type="checkbox" />

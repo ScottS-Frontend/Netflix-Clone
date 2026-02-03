@@ -7,8 +7,10 @@ import play_icon from "../../assets/play_icon.png";
 import info_icon from "../../assets/info_icon.png";
 import TitleCards from "../../components/TitleCards/TitleCards";
 import Footer from "../../components/Footer/Footer";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
+  const navigate = useNavigate();
   return (
     <div className="home">
       <Navbar />
@@ -22,7 +24,7 @@ const Home = () => {
             immortal enemy.
           </p>
           <div className="hero-btns">
-            <button className="btn">
+            <button className="btn" onClick={() => navigate("/player/hero")}>
               <img src={play_icon} alt="" />
               Play
             </button>

@@ -24,14 +24,43 @@ const Player = () => {
   };
 
   useEffect(() => {
+    if (id === "hero") {
+      setApiData({
+        name: "Hero Trailer",
+        key: "80dqOwAOhbo",
+        published_at: "",
+        type: "Trailer",
+      });
+      return;
+    }
+
     fetch(
       `https://api.themoviedb.org/3/movie/${id}/videos?language=en-US`,
       options,
     )
       .then((res) => res.json())
-      .then((res) => setApiData(res.results[0]))
+      .then((res) => {
+        const results = res?.results || [];
+
+        const trailer =
+          results.find((v) => v.site === "YouTube" && v.type === "Trailer") ||
+          results.find((v) => v.site === "YouTube");
+
+        if (!trailer) {
+          console.warn("No YouTube video found for movie:", id);
+          setApiData({
+            name: "No trailer found",
+            key: "",
+            published_at: "",
+            type: "",
+          });
+          return;
+        }
+
+        setApiData(trailer);
+      })
       .catch((err) => console.error(err));
-  }, []);
+  }, [id]);
 
   return (
     <div className="player">
@@ -39,19 +68,25 @@ const Player = () => {
         src={back_arrow_icon}
         alt=""
         onClick={() => {
-          navigate(-2);
+          navigate("/");
         }}
       />
-      <iframe
-        width="90%"
-        height="90%"
-        src={`https://www.youtube.com/embed/${apiData.key}`}
-        title="trailer"
-        frameborder="0"
-        allowFullScreen
-      ></iframe>
+      {apiData.key ? (
+        <iframe
+          width="90%"
+          height="90%"
+          src={`https://www.youtube.com/embed/${apiData.key}?autoplay=1&mute=1&controls=1&modestbranding=1&rel=0&playsinline=1`}
+          title="trailer"
+          frameBorder="0"
+          allow="autoplay; encrypted-media"
+          allowFullScreen
+        ></iframe>
+      ) : (
+        <div style={{ color: "white", padding: 20 }}>No trailer available.</div>
+      )}
+
       <div className="player_info">
-        <p>{apiData.published_at.slice(0, 10)}</p>
+        <p>{apiData.published_at ? apiData.published_at.slice(0, 10) : ""}</p>
         <p>{apiData.name}</p>
         <p>{apiData.type}</p>
       </div>
